@@ -1,0 +1,83 @@
+modules = ["nodejs-24", "java-graalvm22.3", "python-3.11"]
+
+[deployment]
+router = "application"
+deploymentTarget = "autoscale"
+
+[deployment.postBuild]
+args = ["pnpm", "store", "prune"]
+env = { "CI" = "true" }
+
+[workflows]
+runButton = "Project"
+
+[[workflows.workflow]]
+name = "Project"
+mode = "parallel"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "Java Resume Engine"
+
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "Python PDF Service"
+
+[[workflows.workflow]]
+name = "Java Resume Engine"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "JAVA_ENGINE_PORT=8090 java -jar artifacts/java-resume-engine/target/resume-engine-1.0.0.jar --server.port=8090"
+
+[workflows.workflow.metadata]
+outputType = "console"
+
+[[workflows.workflow]]
+name = "Python PDF Service"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "PYTHON_PDF_PORT=8091 python3 artifacts/python-pdf-service/main.py"
+
+[workflows.workflow.metadata]
+outputType = "console"
+
+[agent]
+stack = "PNPM_WORKSPACE"
+expertMode = true
+
+[postMerge]
+path = "scripts/post-merge.sh"
+timeoutMs = 20000
+
+[[ports]]
+localPort = 8080
+externalPort = 8080
+
+[[ports]]
+localPort = 8081
+externalPort = 80
+
+[[ports]]
+localPort = 8082
+externalPort = 3003
+
+[[ports]]
+localPort = 8083
+externalPort = 4200
+
+[[ports]]
+localPort = 8090
+externalPort = 3000
+
+[[ports]]
+localPort = 8091
+externalPort = 3002
+
+[[ports]]
+localPort = 18646
+externalPort = 3001
